@@ -5,7 +5,7 @@ with bentoml.importing():
     from transformers import pipeline
 
 
-EXAMPLE_INPUT = "Breaking News: In an astonishing turn of events, the small \
+EXAMPLE_INPUT = "In an astonishing turn of events, the small \
 town of Willow Creek has been taken by storm as local resident Jerry Thompson's cat, \
 Whiskers, performed what witnesses are calling a 'miraculous and gravity-defying leap.' \
 Eyewitnesses report that Whiskers, an otherwise unremarkable tabby cat, jumped \
