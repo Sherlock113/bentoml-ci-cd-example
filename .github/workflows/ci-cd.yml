@@ -2,7 +2,11 @@ name: Deploy to BentoCloud
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - 'service.py'
+      - 'deployment.yaml'
 
 jobs:
   deploy:
@@ -35,22 +39,29 @@ jobs:
           echo "Log in to BentoCloud at ${{ secrets.BENTOCLOUD_ENDPOINT }}"
           bentoml cloud login --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }} --endpoint ${{ secrets.BENTOCLOUD_ENDPOINT }}
 
-      # Check if service.py has changed
-      - name: Update BentoML Service on BentoCloud (if service.py changed)
-        id: service_update
+      - name: Check for file changes
+        id: check_changes
         run: |
-          git diff --quiet service.py || bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} --bento .
-        continue-on-error: true
+          # Check if service.py has changed
+          git diff --name-only HEAD^ HEAD | grep -q "service.py" && echo "service_changed=true" >> $GITHUB_ENV || echo "service_changed=false" >> $GITHUB_ENV
           
-      # Check if deployment.yaml has changed
-      - name: Update Deployment Configs on BentoCloud (if deployment.yaml changed)
-        id: config_update
+          # Check if deployment.yaml has changed
+          git diff --name-only HEAD^ HEAD | grep -q "deployment.yaml" && echo "deployment_changed=true" >> $GITHUB_ENV || echo "deployment_changed=false" >> $GITHUB_ENV
+
+      - name: Update BentoML Service on BentoCloud
+        if: env.service_changed == 'true'
         run: |
-          git diff --quiet deployment.yaml || bentoml deployment update -f deployment.yaml
-        continue-on-error: true
+          bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} --bento .
+          
+      - name: Update Deployment Configs on BentoCloud (if deployment.yaml changed)
+        if: env.deployment_changed == 'true'
+        run: |
+          bentoml deployment update -f deployment.yaml
           
       - name: Run Test Inference
         run: |
+          # Wait for deployment to be ready
+          sleep 30
           curl -X POST "${{ secrets.DEPLOYMENT_URL }}/summarize" \
             -H "accept: text/plain" \
             -H "Content-Type: application/json" \
