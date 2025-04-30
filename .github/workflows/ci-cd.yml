@@ -1,0 +1,53 @@
+name: Deploy to BentoCloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    env:
+      BENTOML_VERSION: ${{ secrets.BENTOML_VERSION }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bentoml==${BENTOML_VERSION:-latest}
+          
+      - name: Log in to BentoCloud
+        run: |
+          echo "Log in to BentoCloud at ${{ secrets.BENTOCLOUD_ENDPOINT }}"
+          bentoml cloud login --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }} --endpoint ${{ secrets.BENTOCLOUD_ENDPOINT }}
+
+      # Check if service.py has changed
+      - name: Update BentoML Service on BentoCloud (if service.py changed)
+        id: service_update
+        run: |
+          git diff --quiet service.py || bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} --bento .
+        continue-on-error: true
+          
+      # Check if deployment.yaml has changed
+      - name: Update Deployment Configs on BentoCloud (if deployment.yaml changed)
+        id: config_update
+        run: |
+          git diff --quiet deployment.yaml || bentoml deployment update -f deployment.yaml
+        continue-on-error: true
+          
+      - name: Run Test Inference
+        run: |
+          curl -X POST "${{ secrets.DEPLOYMENT_URL }}/summarize" \
+            -H "accept: text/plain" \
+            -H "Content-Type: application/json" \
+            -d '{"text": "Long text to summarize"}'
