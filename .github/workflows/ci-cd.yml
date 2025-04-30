@@ -2,8 +2,7 @@ name: Deploy to BentoCloud
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -11,6 +10,7 @@ jobs:
     
     env:
       BENTOML_VERSION: ${{ secrets.BENTOML_VERSION }}
+      SUMMARY_TEXT: ${{ secrets.SUMMARY_TEXT }}
     
     steps:
       - name: Checkout Code
@@ -50,4 +50,4 @@ jobs:
           curl -X POST "${{ secrets.DEPLOYMENT_URL }}/summarize" \
             -H "accept: text/plain" \
             -H "Content-Type: application/json" \
-            -d '{"text": "Long text to summarize"}'
+            -d "{\"text\": \"${{ env.SUMMARY_TEXT }}\"}"
