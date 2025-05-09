@@ -5,7 +5,7 @@ with bentoml.importing():
     from transformers import pipeline
 
 
-EXAMPLE_INPUT = "This is a test."
+EXAMPLE_INPUT = "This is a test for code change"
 
 
 my_image = bentoml.images.Image(python_version="3.11") \
