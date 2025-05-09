@@ -7,7 +7,7 @@ config:
       instance_type: cpu.1
       scaling:
         min_replicas: 1
-        max_replicas: 1
+        max_replicas: 2
       envs: []
       deployment_strategy: Recreate
       extras: {}
