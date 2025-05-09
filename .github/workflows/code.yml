@@ -43,10 +43,21 @@ jobs:
         run: |
           bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} --bento .
 
-      - name: Run Test Inference
+      - name: Run Test Inference with Readiness Check
         run: |
-          sleep 30
-          curl -X POST "${{ secrets.DEPLOYMENT_URL }}/summarize" \
-            -H "accept: text/plain" \
-            -H "Content-Type: application/json" \
-            -d "{\"text\": \"${{ env.SUMMARY_TEXT }}\"}"
+          python3 <<EOF
+          import time
+          import bentoml
+      
+          client = bentoml.SyncHTTPClient("${{ secrets.DEPLOYMENT_URL }}")
+      
+          for _ in range(10):  # Try for up to ~30 seconds
+              if client.is_ready():
+                  break
+              time.sleep(3)
+          else:
+              raise RuntimeError("Service is not ready after 30 seconds.")
+      
+          response = client.summarize(text="${{ env.SUMMARY_TEXT }}")
+          print(response)
+          EOF
