@@ -44,9 +44,21 @@ jobs:
 
       - name: Run Test Inference
         run: |
-          # Wait for deployment to be ready
-          sleep 30
-          curl -X POST "${{ secrets.DEPLOYMENT_URL }}/summarize" \
-            -H "accept: text/plain" \
-            -H "Content-Type: application/json" \
-            -d "{\"text\": \"${{ env.SUMMARY_TEXT }}\"}"
+          python3 <<EOF
+          import time
+          import bentoml
+      
+          client = bentoml.SyncHTTPClient("${{ secrets.DEPLOYMENT_URL }}")
+      
+          for attempt in range(20):
+              if client.is_ready():
+                  print("Service is ready.")
+                  break
+              print(f"[Attempt {attempt + 1}] Service not ready, retrying...")
+              time.sleep(3)
+          else:
+              raise RuntimeError("Service is not ready after 60 seconds.")
+      
+          response = client.summarize(text="${{ env.SUMMARY_TEXT }}")
+          print(response)
+          EOF
