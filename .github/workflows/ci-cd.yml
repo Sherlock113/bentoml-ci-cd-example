@@ -69,7 +69,7 @@ jobs:
       - name: Update Deployment Configs on BentoCloud (if deployment.yaml changed)
         if: env.deployment_changed == 'true'
         run: |
-          bentoml deployment update -f deployment.yaml
+          bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} -f deployment.yaml
 
       - name: Run Test Inference
         run: |
