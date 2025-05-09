@@ -43,7 +43,7 @@ jobs:
         run: |
           bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} --bento .
 
-      - name: Run Test Inference with Readiness Check
+      - name: Run Test Inference
         run: |
           python3 <<EOF
           import time
@@ -51,12 +51,14 @@ jobs:
       
           client = bentoml.SyncHTTPClient("${{ secrets.DEPLOYMENT_URL }}")
       
-          for _ in range(10):  # Try for up to ~30 seconds
+          for attempt in range(20):
               if client.is_ready():
+                  print("Service is ready.")
                   break
+              print(f"[Attempt {attempt + 1}] Service not ready, retrying...")
               time.sleep(3)
           else:
-              raise RuntimeError("Service is not ready after 30 seconds.")
+              raise RuntimeError("Service is not ready after 60 seconds.")
       
           response = client.summarize(text="${{ env.SUMMARY_TEXT }}")
           print(response)
