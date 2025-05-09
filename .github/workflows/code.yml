@@ -32,6 +32,7 @@ jobs:
           else
             pip install "bentoml==$BENTOML_VERSION"
           fi
+          pip install huggingface_hub
 
       - name: Log in to BentoCloud
         run: |
