@@ -1,3 +1,4 @@
+name: ci-cd-bento
 config:
   envs: []
   services:
