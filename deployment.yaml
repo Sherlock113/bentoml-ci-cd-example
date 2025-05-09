@@ -1,5 +1,3 @@
-name: ci-cd-bento
-cluster: google-cloud-us-central-1
 config:
   envs: []
   services:
