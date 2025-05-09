@@ -7,10 +7,10 @@ config:
       scaling:
         min_replicas: 1
         max_replicas: 2
-      envs: []
+    # envs: []
       deployment_strategy: Recreate
       extras: {}
-      config_overrides:
-        traffic:
-          timeout: 30
-          external_queue: false
+    # config_overrides:
+    #   traffic:
+    #     timeout: 30
+    #     external_queue: false
