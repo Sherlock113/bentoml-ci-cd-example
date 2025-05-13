@@ -8,8 +8,8 @@ config:
         min_replicas: 1
         max_replicas: 2
     # envs: []
-      deployment_strategy: Recreate
-      extras: {}
+    # deployment_strategy: Recreate
+    # extras: {}
     # config_overrides:
     #   traffic:
     #     timeout: 30
