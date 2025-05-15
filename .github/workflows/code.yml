@@ -1,6 +1,7 @@
-name: Update Service Code or Other Files
+name: Update Code
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,7 +9,7 @@ on:
       - 'deployment.yaml'
 
 jobs:
-  update-service:
+  update-code:
     runs-on: ubuntu-latest
 
     env:
@@ -36,7 +37,7 @@ jobs:
 
       - name: Log in to BentoCloud
         run: |
-          echo "Logging into BentoCloud"
+          echo "Logging in to BentoCloud"
           bentoml cloud login --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }} --endpoint ${{ secrets.BENTOCLOUD_ENDPOINT }}
 
       - name: Update BentoML Service
@@ -44,8 +45,8 @@ jobs:
           bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} --bento .
 
       - name: Run Test Inference
+        shell: python
         run: |
-          python3 <<EOF
           import time
           import bentoml
       
@@ -60,6 +61,5 @@ jobs:
           else:
               raise RuntimeError("Service is not ready after 60 seconds.")
       
-          response = client.summarize(text="${{ env.SUMMARY_TEXT }}")
+          response = client.summarize(text="This is a sample prompt for testing.")
           print(response)
-          EOF
