@@ -49,7 +49,7 @@ jobs:
 
           deployment = bentoml.deployment.update(
               name="${{ secrets.DEPLOYMENT_NAME }}",
-              bento=".",
+              project_path=".",
           )
 
           code = deployment.wait_until_ready(timeout=60)
