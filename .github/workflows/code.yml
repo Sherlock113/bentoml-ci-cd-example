@@ -38,28 +38,24 @@ jobs:
       - name: Log in to BentoCloud
         run: |
           echo "Logging in to BentoCloud"
-          bentoml cloud login --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }} --endpoint ${{ secrets.BENTOCLOUD_ENDPOINT }}
-
-      - name: Update BentoML Service
-        run: |
-          bentoml deployment update ${{ secrets.DEPLOYMENT_NAME }} --bento .
+          bentoml cloud login \
+            --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }} \
+            --endpoint ${{ secrets.BENTOCLOUD_ENDPOINT }}
 
       - name: Deploy and Run Test Inference
-	shell: python
-	run: |
-	  import bentoml
- 
+        shell: python
+        run: |
+          import bentoml
+
           deployment = bentoml.deployment.update(
-	       name="${{ secrets.DEPLOYMENT_NAME }}",
-	       bento=".",
-	  )
-			
-	  # Wait until the deployment is live (or timeout after 60 seconds)
-	  code = deployment.wait_until_ready(timeout=60)
-			
-	  if code != 0:
-	      raise RuntimeError("Deployment did not become ready in time.")
-			
-	  client = deployment.get_client()
-	  response = client.summarize(text="This is a sample prompt for testing.")
-	  print(response)
+              name="${{ secrets.DEPLOYMENT_NAME }}",
+              bento=".",
+          )
+
+          code = deployment.wait_until_ready(timeout=60)
+          if code != 0:
+              raise RuntimeError("Deployment did not become ready in time.")
+
+          client = deployment.get_client()
+          response = client.summarize(text="This is a sample prompt for testing.")
+          print(response)
