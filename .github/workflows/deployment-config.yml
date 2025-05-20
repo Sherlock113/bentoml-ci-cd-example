@@ -1,6 +1,7 @@
 name: Update Deployment Config
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,7 +9,7 @@ on:
       - 'deployment.yaml'
 
 jobs:
-  update-deployment:
+  update-deployment-config:
     runs-on: ubuntu-latest
 
     env:
@@ -35,30 +36,23 @@ jobs:
 
       - name: Log in to BentoCloud
         run: |
-          echo "Logging into BentoCloud"
-          bentoml cloud login --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }} --endpoint ${{ secrets.BENTOCLOUD_ENDPOINT }}
+          echo "Logging in to BentoCloud"
+          bentoml cloud login --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }}
 
-      - name: Update Deployment Config
+      - name: Deploy and Run Test Inference
+        shell: python
         run: |
-          bentoml deployment update -f deployment.yaml
-
-      - name: Run Test Inference
-        run: |
-          python3 <<EOF
-          import time
           import bentoml
-      
-          client = bentoml.SyncHTTPClient("${{ secrets.DEPLOYMENT_URL }}")
-      
-          for attempt in range(20):
-              if client.is_ready():
-                  print("Service is ready.")
-                  break
-              print(f"[Attempt {attempt + 1}] Service not ready, retrying...")
-              time.sleep(3)
-          else:
-              raise RuntimeError("Service is not ready after 60 seconds.")
-      
-          response = client.summarize(text="${{ env.SUMMARY_TEXT }}")
+
+          deployment = bentoml.deployment.update(
+              name="${{ secrets.DEPLOYMENT_NAME }}",
+              config_file="deployment.yaml",
+          )
+
+          code = deployment.wait_until_ready(timeout=60)
+          if code != 0:
+              raise RuntimeError("Deployment did not become ready in time.")
+
+          client = deployment.get_client()
+          response = client.summarize(text="This is a sample prompt for testing.")
           print(response)
-          EOF
