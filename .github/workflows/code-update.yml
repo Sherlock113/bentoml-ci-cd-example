@@ -38,9 +38,7 @@ jobs:
       - name: Log in to BentoCloud
         run: |
           echo "Logging in to BentoCloud"
-          bentoml cloud login \
-            --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }} \
-            --endpoint ${{ secrets.BENTOCLOUD_ENDPOINT }}
+          bentoml cloud login --api-token ${{ secrets.BENTOCLOUD_API_TOKEN }}
 
       - name: Deploy and Run Test Inference
         shell: python
